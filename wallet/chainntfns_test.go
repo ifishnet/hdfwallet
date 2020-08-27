@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
+	"github.com/ifishnet/hdf/chaincfg"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	_ "github.com/hdfsuite/hdfwallet/walletdb/bdb"
 )
 
 const (

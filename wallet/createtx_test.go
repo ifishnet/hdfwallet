@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The btcsuite developers
+// Copyright (c) 2018 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/txscript"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	_ "github.com/hdfsuite/hdfwallet/walletdb/bdb"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 )
 
 // TestTxToOutput checks that no new address is added to he database if we

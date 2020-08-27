@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2017 The btcsuite developers
+// Copyright (c) 2013-2017 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -10,13 +10,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/btcsuite/btclog"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/rpc/legacyrpc"
-	"github.com/btcsuite/btcwallet/rpc/rpcserver"
-	"github.com/btcsuite/btcwallet/wallet"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/rpcclient"
+	"github.com/hdfsuite/hdflog"
+	"github.com/hdfsuite/hdfwallet/chain"
+	"github.com/hdfsuite/hdfwallet/rpc/legacyrpc"
+	"github.com/hdfsuite/hdfwallet/rpc/rpcserver"
+	"github.com/hdfsuite/hdfwallet/wallet"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 	"github.com/jrick/logrotate/rotator"
 	"github.com/lightninglabs/neutrino"
 )
@@ -43,7 +43,7 @@ var (
 	// backendLog is the logging backend used to create all subsystem loggers.
 	// The backend must not be used before the log rotator has been initialized,
 	// or data races and/or nil pointer dereferences will occur.
-	backendLog = btclog.NewBackend(logWriter{})
+	backendLog = hdflog.NewBackend(logWriter{})
 
 	// logRotator is one of the logging outputs.  It should be closed on
 	// application shutdown.
@@ -53,13 +53,13 @@ var (
 	// is written to by the Write method of the logWriter type.
 	logRotatorPipe *io.PipeWriter
 
-	log          = backendLog.Logger("BTCW")
+	log          = backendLog.Logger("HDFW")
 	walletLog    = backendLog.Logger("WLLT")
 	txmgrLog     = backendLog.Logger("TMGR")
 	chainLog     = backendLog.Logger("CHNS")
 	grpcLog      = backendLog.Logger("GRPC")
 	legacyRPCLog = backendLog.Logger("RPCS")
-	btcnLog      = backendLog.Logger("BTCN")
+	hdfnLog      = backendLog.Logger("HDFN")
 )
 
 // Initialize package-global logger variables.
@@ -70,18 +70,18 @@ func init() {
 	rpcclient.UseLogger(chainLog)
 	rpcserver.UseLogger(grpcLog)
 	legacyrpc.UseLogger(legacyRPCLog)
-	neutrino.UseLogger(btcnLog)
+	neutrino.UseLogger(hdfnLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
-var subsystemLoggers = map[string]btclog.Logger{
-	"BTCW": log,
+var subsystemLoggers = map[string]hdflog.Logger{
+	"HDFW": log,
 	"WLLT": walletLog,
 	"TMGR": txmgrLog,
 	"CHNS": chainLog,
 	"GRPC": grpcLog,
 	"RPCS": legacyRPCLog,
-	"BTCN": btcnLog,
+	"HDFN": hdfnLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and
@@ -118,7 +118,7 @@ func setLogLevel(subsystemID string, logLevel string) {
 	}
 
 	// Defaults to info if the log level is invalid.
-	level, _ := btclog.LevelFromString(logLevel)
+	level, _ := hdflog.LevelFromString(logLevel)
 	logger.SetLevel(level)
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 The btcsuite developers
+// Copyright (c) 2015-2016 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -12,21 +12,21 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/internal/cfgutil"
-	"github.com/btcsuite/btcwallet/netparams"
-	"github.com/btcsuite/btcwallet/wallet/txauthor"
-	"github.com/btcsuite/btcwallet/wallet/txrules"
+	"github.com/ifishnet/hdf/hdfjson"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/rpcclient"
+	"github.com/ifishnet/hdf/txscript"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/ifishnet/hdfutil"
+	"github.com/hdfsuite/hdfwallet/internal/cfgutil"
+	"github.com/hdfsuite/hdfwallet/netparams"
+	"github.com/hdfsuite/hdfwallet/wallet/txauthor"
+	"github.com/hdfsuite/hdfwallet/wallet/txrules"
 	"github.com/jessevdk/go-flags"
 )
 
 var (
-	walletDataDirectory = btcutil.AppDataDir("btcwallet", false)
+	walletDataDirectory = hdfutil.AppDataDir("hdfwallet", false)
 	newlineBytes        = []byte{'\n'}
 )
 
@@ -138,15 +138,15 @@ func (noInputValue) Error() string { return "no input value" }
 // output is consumed.  The InputSource does not return any previous output
 // scripts as they are not needed for creating the unsinged transaction and are
 // looked up again by the wallet during the call to signrawtransaction.
-func makeInputSource(outputs []btcjson.ListUnspentResult) txauthor.InputSource {
+func makeInputSource(outputs []hdfjson.ListUnspentResult) txauthor.InputSource {
 	var (
-		totalInputValue btcutil.Amount
+		totalInputValue hdfutil.Amount
 		inputs          = make([]*wire.TxIn, 0, len(outputs))
-		inputValues     = make([]btcutil.Amount, 0, len(outputs))
+		inputValues     = make([]hdfutil.Amount, 0, len(outputs))
 		sourceErr       error
 	)
 	for _, output := range outputs {
-		outputAmount, err := btcutil.NewAmount(output.Amount)
+		outputAmount, err := hdfutil.NewAmount(output.Amount)
 		if err != nil {
 			sourceErr = fmt.Errorf(
 				"invalid amount `%v` in listunspent result",
@@ -180,7 +180,7 @@ func makeInputSource(outputs []btcjson.ListUnspentResult) txauthor.InputSource {
 		sourceErr = noInputValue{}
 	}
 
-	return func(btcutil.Amount) (btcutil.Amount, []*wire.TxIn, []btcutil.Amount, [][]byte, error) {
+	return func(hdfutil.Amount) (hdfutil.Amount, []*wire.TxIn, []hdfutil.Amount, [][]byte, error) {
 		return totalInputValue, inputs, inputValues, nil, sourceErr
 	}
 }
@@ -236,7 +236,7 @@ func sweep() error {
 	if err != nil {
 		return errContext(err, "failed to fetch unspent outputs")
 	}
-	sourceOutputs := make(map[string][]btcjson.ListUnspentResult)
+	sourceOutputs := make(map[string][]hdfjson.ListUnspentResult)
 	for _, unspentOutput := range unspentOutputs {
 		if !unspentOutput.Spendable {
 			continue
@@ -259,7 +259,7 @@ func sweep() error {
 		}
 	}
 
-	var totalSwept btcutil.Amount
+	var totalSwept hdfutil.Amount
 	var numErrors int
 	var reportError = func(format string, args ...interface{}) {
 		fmt.Fprintf(os.Stderr, format, args...)
@@ -302,7 +302,7 @@ func sweep() error {
 			continue
 		}
 
-		outputAmount := btcutil.Amount(tx.Tx.TxOut[0].Value)
+		outputAmount := hdfutil.Amount(tx.Tx.TxOut[0].Value)
 		fmt.Printf("Swept %v to destination account with transaction %v\n",
 			outputAmount, txHash)
 		totalSwept += outputAmount
@@ -332,11 +332,11 @@ func promptSecret(what string) (string, error) {
 	return string(input), nil
 }
 
-func saneOutputValue(amount btcutil.Amount) bool {
-	return amount >= 0 && amount <= btcutil.MaxSatoshi
+func saneOutputValue(amount hdfutil.Amount) bool {
+	return amount >= 0 && amount <= hdfutil.MaxSatoshi
 }
 
-func parseOutPoint(input *btcjson.ListUnspentResult) (wire.OutPoint, error) {
+func parseOutPoint(input *hdfjson.ListUnspentResult) (wire.OutPoint, error) {
 	txHash, err := chainhash.NewHashFromStr(input.TxID)
 	if err != nil {
 		return wire.OutPoint{}, err

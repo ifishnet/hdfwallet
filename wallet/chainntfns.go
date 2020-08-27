@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 The btcsuite developers
+// Copyright (c) 2013-2015 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/txscript"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/hdfsuite/hdfwallet/chain"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 )
 
 const (
@@ -39,7 +39,7 @@ func (w *Wallet) handleChainNotifications() {
 		// TODO(aakselrod): There's a race conditon here, which
 		// happens when a reorg occurs between the
 		// rescanProgress notification and the last GetBlockHash
-		// call. The solution when using btcd is to make btcd
+		// call. The solution when using hdf is to make hdf
 		// send blockconnected notifications with each block
 		// the way Neutrino does, and get rid of the loop. The
 		// other alternative is to check the final hash and,

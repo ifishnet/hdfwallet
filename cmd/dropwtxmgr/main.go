@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 The btcsuite developers
+// Copyright (c) 2015-2016 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -10,18 +10,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdfutil"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	_ "github.com/hdfsuite/hdfwallet/walletdb/bdb"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 	"github.com/jessevdk/go-flags"
 )
 
 const defaultNet = "mainnet"
 
-var datadir = btcutil.AppDataDir("btcwallet", false)
+var datadir = hdfutil.AppDataDir("hdfwallet", false)
 
 // Flags.
 var opts = struct {
@@ -80,7 +80,7 @@ func mainInt() int {
 	}
 
 	for !opts.Force {
-		fmt.Print("Drop all btcwallet transaction history? [y/N] ")
+		fmt.Print("Drop all hdfwallet transaction history? [y/N] ")
 
 		scanner := bufio.NewScanner(bufio.NewReader(os.Stdin))
 		if !scanner.Scan() {
@@ -111,7 +111,7 @@ func mainInt() int {
 	}
 	defer db.Close()
 
-	fmt.Println("Dropping btcwallet transaction history")
+	fmt.Println("Dropping hdfwallet transaction history")
 
 	err = walletdb.Update(db, func(tx walletdb.ReadWriteTx) error {
 		// If we want to keep our tx labels, we read them out so we

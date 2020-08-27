@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/ifishnet/hdf/chaincfg"
+	"github.com/ifishnet/hdfutil/hdkeychain"
 )
 
 // testWallet creates a test wallet and unlocks it.

@@ -3,11 +3,11 @@ package chain
 import (
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/ifishnet/hdfutil"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 )
 
 // isCurrentDelta is the delta duration we'll use from the present time to
@@ -20,13 +20,13 @@ const isCurrentDelta = 2 * time.Hour
 func BackEnds() []string {
 	return []string{
 		"bitcoind",
-		"btcd",
+		"hdf",
 		"neutrino",
 	}
 }
 
 // Interface allows more than one backing blockchain source, such as a
-// btcd RPC chain server, or an SPV library, as long as we write a driver for
+// hdf RPC chain server, or an SPV library, as long as we write a driver for
 // it.
 type Interface interface {
 	Start() error
@@ -40,8 +40,8 @@ type Interface interface {
 	FilterBlocks(*FilterBlocksRequest) (*FilterBlocksResponse, error)
 	BlockStamp() (*waddrmgr.BlockStamp, error)
 	SendRawTransaction(*wire.MsgTx, bool) (*chainhash.Hash, error)
-	Rescan(*chainhash.Hash, []btcutil.Address, map[wire.OutPoint]btcutil.Address) error
-	NotifyReceived([]btcutil.Address) error
+	Rescan(*chainhash.Hash, []hdfutil.Address, map[wire.OutPoint]hdfutil.Address) error
+	NotifyReceived([]hdfutil.Address) error
 	NotifyBlocks() error
 	Notifications() <-chan interface{}
 	BackEnd() string
@@ -74,9 +74,9 @@ type (
 	// is also included to monitor for spends.
 	FilterBlocksRequest struct {
 		Blocks           []wtxmgr.BlockMeta
-		ExternalAddrs    map[waddrmgr.ScopedIndex]btcutil.Address
-		InternalAddrs    map[waddrmgr.ScopedIndex]btcutil.Address
-		WatchedOutPoints map[wire.OutPoint]btcutil.Address
+		ExternalAddrs    map[waddrmgr.ScopedIndex]hdfutil.Address
+		InternalAddrs    map[waddrmgr.ScopedIndex]hdfutil.Address
+		WatchedOutPoints map[wire.OutPoint]hdfutil.Address
 	}
 
 	// FilterBlocksResponse reports the set of all internal and external
@@ -91,7 +91,7 @@ type (
 		BlockMeta          wtxmgr.BlockMeta
 		FoundExternalAddrs map[waddrmgr.KeyScope]map[uint32]struct{}
 		FoundInternalAddrs map[waddrmgr.KeyScope]map[uint32]struct{}
-		FoundOutPoints     map[wire.OutPoint]btcutil.Address
+		FoundOutPoints     map[wire.OutPoint]hdfutil.Address
 		RelevantTxns       []*wire.MsgTx
 	}
 

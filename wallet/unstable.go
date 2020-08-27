@@ -1,14 +1,14 @@
 // Copyright (c) 2016 The Decred developers
-// Copyright (c) 2017 The btcsuite developers
+// Copyright (c) 2017 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
 package wallet
 
 import (
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 )
 
 type unstableAPI struct {

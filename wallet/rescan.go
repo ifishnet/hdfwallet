@@ -1,29 +1,29 @@
-// Copyright (c) 2013-2017 The btcsuite developers
+// Copyright (c) 2013-2017 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
 package wallet
 
 import (
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/txscript"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/ifishnet/hdfutil"
+	"github.com/hdfsuite/hdfwallet/chain"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 )
 
 // RescanProgressMsg reports the current progress made by a rescan for a
 // set of wallet addresses.
 type RescanProgressMsg struct {
-	Addresses    []btcutil.Address
+	Addresses    []hdfutil.Address
 	Notification *chain.RescanProgress
 }
 
 // RescanFinishedMsg reports the addresses that were rescanned when a
 // rescanfinished message was received rescanning a batch of addresses.
 type RescanFinishedMsg struct {
-	Addresses    []btcutil.Address
+	Addresses    []hdfutil.Address
 	Notification *chain.RescanFinished
 }
 
@@ -34,8 +34,8 @@ type RescanFinishedMsg struct {
 // channel.
 type RescanJob struct {
 	InitialSync bool
-	Addrs       []btcutil.Address
-	OutPoints   map[wire.OutPoint]btcutil.Address
+	Addrs       []hdfutil.Address
+	OutPoints   map[wire.OutPoint]hdfutil.Address
 	BlockStamp  waddrmgr.BlockStamp
 	err         chan error
 }
@@ -44,8 +44,8 @@ type RescanJob struct {
 // together before a rescan is performed.
 type rescanBatch struct {
 	initialSync bool
-	addrs       []btcutil.Address
-	outpoints   map[wire.OutPoint]btcutil.Address
+	addrs       []hdfutil.Address
+	outpoints   map[wire.OutPoint]hdfutil.Address
 	bs          waddrmgr.BlockStamp
 	errChans    []chan error
 }
@@ -273,16 +273,16 @@ out:
 // a wallet.  This is intended to be used to sync a wallet back up to the
 // current best block in the main chain, and is considered an initial sync
 // rescan.
-func (w *Wallet) Rescan(addrs []btcutil.Address, unspent []wtxmgr.Credit) error {
+func (w *Wallet) Rescan(addrs []hdfutil.Address, unspent []wtxmgr.Credit) error {
 	return w.rescanWithTarget(addrs, unspent, nil)
 }
 
 // rescanWithTarget performs a rescan starting at the optional startStamp. If
 // none is provided, the rescan will begin from the manager's sync tip.
-func (w *Wallet) rescanWithTarget(addrs []btcutil.Address,
+func (w *Wallet) rescanWithTarget(addrs []hdfutil.Address,
 	unspent []wtxmgr.Credit, startStamp *waddrmgr.BlockStamp) error {
 
-	outpoints := make(map[wire.OutPoint]btcutil.Address, len(unspent))
+	outpoints := make(map[wire.OutPoint]hdfutil.Address, len(unspent))
 	for _, output := range unspent {
 		_, outputAddrs, _, err := txscript.ExtractPkScriptAddrs(
 			output.PkScript, w.chainParams,

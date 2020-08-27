@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2017 The btcsuite developers
+// Copyright (c) 2013-2017 The hdfsuite developers
 // Copyright (c) 2015-2016 The Decred developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -15,22 +15,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wallet/txauthor"
-	"github.com/btcsuite/btcwallet/wallet/txrules"
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/btcsuite/btcwallet/walletdb/migration"
-	"github.com/btcsuite/btcwallet/wtxmgr"
+	"github.com/ifishnet/hdf/blockchain"
+	"github.com/ifishnet/hdf/hdfec"
+	"github.com/ifishnet/hdf/hdfjson"
+	"github.com/ifishnet/hdf/chaincfg"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/txscript"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/ifishnet/hdfutil"
+	"github.com/ifishnet/hdfutil/hdkeychain"
+	"github.com/hdfsuite/hdfwallet/chain"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/wallet/txauthor"
+	"github.com/hdfsuite/hdfwallet/wallet/txrules"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	"github.com/hdfsuite/hdfwallet/walletdb/migration"
+	"github.com/hdfsuite/hdfwallet/wtxmgr"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -316,13 +316,13 @@ func (w *Wallet) SetChainSynced(synced bool) {
 // activeData returns the currently-active receiving addresses and all unspent
 // outputs.  This is primarely intended to provide the parameters for a
 // rescan request.
-func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]btcutil.Address, []wtxmgr.Credit, error) {
+func (w *Wallet) activeData(dbtx walletdb.ReadWriteTx) ([]hdfutil.Address, []wtxmgr.Credit, error) {
 	addrmgrNs := dbtx.ReadBucket(waddrmgrNamespaceKey)
 	txmgrNs := dbtx.ReadWriteBucket(wtxmgrNamespaceKey)
 
-	var addrs []btcutil.Address
+	var addrs []hdfutil.Address
 	err := w.Manager.ForEachRelevantActiveAddress(
-		addrmgrNs, func(addr btcutil.Address) error {
+		addrmgrNs, func(addr hdfutil.Address) error {
 			addrs = append(addrs, addr)
 			return nil
 		},
@@ -516,7 +516,7 @@ func (w *Wallet) syncWithChain(birthdayStamp *waddrmgr.BlockStamp) error {
 	// transactions sending to all wallet addresses and spending all wallet
 	// UTXOs.
 	var (
-		addrs   []btcutil.Address
+		addrs   []hdfutil.Address
 		unspent []wtxmgr.Credit
 	)
 	err = walletdb.Update(w.db, func(dbtx walletdb.ReadWriteTx) error {
@@ -969,8 +969,8 @@ func newFilterBlocksRequest(batch []wtxmgr.BlockMeta,
 
 	filterReq := &chain.FilterBlocksRequest{
 		Blocks:           batch,
-		ExternalAddrs:    make(map[waddrmgr.ScopedIndex]btcutil.Address),
-		InternalAddrs:    make(map[waddrmgr.ScopedIndex]btcutil.Address),
+		ExternalAddrs:    make(map[waddrmgr.ScopedIndex]hdfutil.Address),
+		InternalAddrs:    make(map[waddrmgr.ScopedIndex]hdfutil.Address),
 		WatchedOutPoints: recoveryState.WatchedOutPoints(),
 	}
 
@@ -1132,7 +1132,7 @@ type (
 		account     uint32
 		outputs     []*wire.TxOut
 		minconf     int32
-		feeSatPerKB btcutil.Amount
+		feeSatPerKB hdfutil.Amount
 		dryRun      bool
 		resp        chan createTxResponse
 	}
@@ -1184,7 +1184,7 @@ out:
 // NOTE: The dryRun argument can be set true to create a tx that doesn't alter
 // the database. A tx created with this set to true SHOULD NOT be broadcasted.
 func (w *Wallet) CreateSimpleTx(account uint32, outputs []*wire.TxOut,
-	minconf int32, satPerKb btcutil.Amount, dryRun bool) (
+	minconf int32, satPerKb hdfutil.Amount, dryRun bool) (
 	*txauthor.AuthoredTx, error) {
 
 	req := createTxRequest{
@@ -1444,7 +1444,7 @@ func (w *Wallet) accountUsed(addrmgrNs walletdb.ReadWriteBucket, account uint32)
 
 // AccountAddresses returns the addresses for every created address for an
 // account.
-func (w *Wallet) AccountAddresses(account uint32) (addrs []btcutil.Address, err error) {
+func (w *Wallet) AccountAddresses(account uint32) (addrs []hdfutil.Address, err error) {
 	err = walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		return w.Manager.ForEachAccountAddress(addrmgrNs, account, func(maddr waddrmgr.ManagedAddress) error {
@@ -1463,8 +1463,8 @@ func (w *Wallet) AccountAddresses(account uint32) (addrs []btcutil.Address, err 
 // a UTXO must be in a block.  If confirmations is 1 or greater,
 // the balance will be calculated based on how many how many blocks
 // include a UTXO.
-func (w *Wallet) CalculateBalance(confirms int32) (btcutil.Amount, error) {
-	var balance btcutil.Amount
+func (w *Wallet) CalculateBalance(confirms int32) (hdfutil.Amount, error) {
+	var balance hdfutil.Amount
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 		var err error
@@ -1478,9 +1478,9 @@ func (w *Wallet) CalculateBalance(confirms int32) (btcutil.Amount, error) {
 // Balances records total, spendable (by policy), and immature coinbase
 // reward balance amounts.
 type Balances struct {
-	Total          btcutil.Amount
-	Spendable      btcutil.Amount
-	ImmatureReward btcutil.Amount
+	Total          hdfutil.Amount
+	Spendable      hdfutil.Amount
+	ImmatureReward hdfutil.Amount
 }
 
 // CalculateAccountBalances sums the amounts of all unspent transaction
@@ -1532,8 +1532,8 @@ func (w *Wallet) CalculateAccountBalances(account uint32, confirms int32) (Balan
 // CurrentAddress gets the most recently requested Bitcoin payment address
 // from a wallet for a particular key-chain scope.  If the address has already
 // been used (there is at least one transaction spending to it in the
-// blockchain or btcd mempool), the next chained address is returned.
-func (w *Wallet) CurrentAddress(account uint32, scope waddrmgr.KeyScope) (btcutil.Address, error) {
+// blockchain or hdf mempool), the next chained address is returned.
+func (w *Wallet) CurrentAddress(account uint32, scope waddrmgr.KeyScope) (hdfutil.Address, error) {
 	chainClient, err := w.requireChainClient()
 	if err != nil {
 		return nil, err
@@ -1545,7 +1545,7 @@ func (w *Wallet) CurrentAddress(account uint32, scope waddrmgr.KeyScope) (btcuti
 	}
 
 	var (
-		addr  btcutil.Address
+		addr  hdfutil.Address
 		props *waddrmgr.AccountProperties
 	)
 	err = walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
@@ -1581,7 +1581,7 @@ func (w *Wallet) CurrentAddress(account uint32, scope waddrmgr.KeyScope) (btcuti
 	// If the props have been initially, then we had to create a new address
 	// to satisfy the query. Notify the rpc server about the new address.
 	if props != nil {
-		err = chainClient.NotifyReceived([]btcutil.Address{addr})
+		err = chainClient.NotifyReceived([]hdfutil.Address{addr})
 		if err != nil {
 			return nil, err
 		}
@@ -1593,8 +1593,8 @@ func (w *Wallet) CurrentAddress(account uint32, scope waddrmgr.KeyScope) (btcuti
 }
 
 // PubKeyForAddress looks up the associated public key for a P2PKH address.
-func (w *Wallet) PubKeyForAddress(a btcutil.Address) (*btcec.PublicKey, error) {
-	var pubKey *btcec.PublicKey
+func (w *Wallet) PubKeyForAddress(a hdfutil.Address) (*hdfec.PublicKey, error) {
+	var pubKey *hdfec.PublicKey
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		managedAddr, err := w.Manager.Address(addrmgrNs, a)
@@ -1665,8 +1665,8 @@ func (w *Wallet) LabelTransaction(hash chainhash.Hash, label string,
 
 // PrivKeyForAddress looks up the associated private key for a P2PKH or P2PK
 // address.
-func (w *Wallet) PrivKeyForAddress(a btcutil.Address) (*btcec.PrivateKey, error) {
-	var privKey *btcec.PrivateKey
+func (w *Wallet) PrivKeyForAddress(a hdfutil.Address) (*hdfec.PrivateKey, error) {
+	var privKey *hdfec.PrivateKey
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		managedAddr, err := w.Manager.Address(addrmgrNs, a)
@@ -1684,7 +1684,7 @@ func (w *Wallet) PrivKeyForAddress(a btcutil.Address) (*btcec.PrivateKey, error)
 }
 
 // HaveAddress returns whether the wallet is the owner of the address a.
-func (w *Wallet) HaveAddress(a btcutil.Address) (bool, error) {
+func (w *Wallet) HaveAddress(a hdfutil.Address) (bool, error) {
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		_, err := w.Manager.Address(addrmgrNs, a)
@@ -1700,7 +1700,7 @@ func (w *Wallet) HaveAddress(a btcutil.Address) (bool, error) {
 }
 
 // AccountOfAddress finds the account that an address is associated with.
-func (w *Wallet) AccountOfAddress(a btcutil.Address) (uint32, error) {
+func (w *Wallet) AccountOfAddress(a hdfutil.Address) (uint32, error) {
 	var account uint32
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
@@ -1712,7 +1712,7 @@ func (w *Wallet) AccountOfAddress(a btcutil.Address) (uint32, error) {
 }
 
 // AddressInfo returns detailed information regarding a wallet address.
-func (w *Wallet) AddressInfo(a btcutil.Address) (waddrmgr.ManagedAddress, error) {
+func (w *Wallet) AddressInfo(a hdfutil.Address) (waddrmgr.ManagedAddress, error) {
 	var managedAddress waddrmgr.ManagedAddress
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
@@ -1888,7 +1888,7 @@ func RecvCategory(details *wtxmgr.TxDetails, syncHeight int32, net *chaincfg.Par
 //
 // TODO: This should be moved to the legacyrpc package.
 func listTransactions(tx walletdb.ReadTx, details *wtxmgr.TxDetails, addrMgr *waddrmgr.Manager,
-	syncHeight int32, net *chaincfg.Params) []btcjson.ListTransactionsResult {
+	syncHeight int32, net *chaincfg.Params) []hdfjson.ListTransactionsResult {
 
 	addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 
@@ -1903,7 +1903,7 @@ func listTransactions(tx walletdb.ReadTx, details *wtxmgr.TxDetails, addrMgr *wa
 		confirmations = int64(confirms(details.Block.Height, syncHeight))
 	}
 
-	results := []btcjson.ListTransactionsResult{}
+	results := []hdfjson.ListTransactionsResult{}
 	txHashStr := details.Hash.String()
 	received := details.Received.Unix()
 	generated := blockchain.IsCoinBaseTx(&details.MsgTx)
@@ -1914,18 +1914,18 @@ func listTransactions(tx walletdb.ReadTx, details *wtxmgr.TxDetails, addrMgr *wa
 	// Fee can only be determined if every input is a debit.
 	var feeF64 float64
 	if len(details.Debits) == len(details.MsgTx.TxIn) {
-		var debitTotal btcutil.Amount
+		var debitTotal hdfutil.Amount
 		for _, deb := range details.Debits {
 			debitTotal += deb.Amount
 		}
-		var outputTotal btcutil.Amount
+		var outputTotal hdfutil.Amount
 		for _, output := range details.MsgTx.TxOut {
-			outputTotal += btcutil.Amount(output.Value)
+			outputTotal += hdfutil.Amount(output.Value)
 		}
 		// Note: The actual fee is debitTotal - outputTotal.  However,
 		// this RPC reports negative numbers for fees, so the inverse
 		// is calculated.
-		feeF64 = (outputTotal - debitTotal).ToBTC()
+		feeF64 = (outputTotal - debitTotal).ToHDF()
 	}
 
 outputs:
@@ -1962,8 +1962,8 @@ outputs:
 			}
 		}
 
-		amountF64 := btcutil.Amount(output.Value).ToBTC()
-		result := btcjson.ListTransactionsResult{
+		amountF64 := hdfutil.Amount(output.Value).ToHDF()
+		result := hdfjson.ListTransactionsResult{
 			// Fields left zeroed:
 			//   InvolvesWatchOnly
 			//   BlockIndex
@@ -2015,8 +2015,8 @@ outputs:
 // ListSinceBlock returns a slice of objects with details about transactions
 // since the given block. If the block is -1 then all transactions are included.
 // This is intended to be used for listsinceblock RPC replies.
-func (w *Wallet) ListSinceBlock(start, end, syncHeight int32) ([]btcjson.ListTransactionsResult, error) {
-	txList := []btcjson.ListTransactionsResult{}
+func (w *Wallet) ListSinceBlock(start, end, syncHeight int32) ([]hdfjson.ListTransactionsResult, error) {
+	txList := []hdfjson.ListTransactionsResult{}
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -2037,8 +2037,8 @@ func (w *Wallet) ListSinceBlock(start, end, syncHeight int32) ([]btcjson.ListTra
 // ListTransactions returns a slice of objects with details about a recorded
 // transaction.  This is intended to be used for listtransactions RPC
 // replies.
-func (w *Wallet) ListTransactions(from, count int) ([]btcjson.ListTransactionsResult, error) {
-	txList := []btcjson.ListTransactionsResult{}
+func (w *Wallet) ListTransactions(from, count int) ([]hdfjson.ListTransactionsResult, error) {
+	txList := []hdfjson.ListTransactionsResult{}
 
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
@@ -2090,8 +2090,8 @@ func (w *Wallet) ListTransactions(from, count int) ([]btcjson.ListTransactionsRe
 // ListAddressTransactions returns a slice of objects with details about
 // recorded transactions to or from any address belonging to a set.  This is
 // intended to be used for listaddresstransactions RPC replies.
-func (w *Wallet) ListAddressTransactions(pkHashes map[string]struct{}) ([]btcjson.ListTransactionsResult, error) {
-	txList := []btcjson.ListTransactionsResult{}
+func (w *Wallet) ListAddressTransactions(pkHashes map[string]struct{}) ([]hdfjson.ListTransactionsResult, error) {
+	txList := []hdfjson.ListTransactionsResult{}
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -2110,7 +2110,7 @@ func (w *Wallet) ListAddressTransactions(pkHashes map[string]struct{}) ([]btcjso
 					if err != nil || len(addrs) != 1 {
 						continue
 					}
-					apkh, ok := addrs[0].(*btcutil.AddressPubKeyHash)
+					apkh, ok := addrs[0].(*hdfutil.AddressPubKeyHash)
 					if !ok {
 						continue
 					}
@@ -2139,8 +2139,8 @@ func (w *Wallet) ListAddressTransactions(pkHashes map[string]struct{}) ([]btcjso
 // ListAllTransactions returns a slice of objects with details about a recorded
 // transaction.  This is intended to be used for listalltransactions RPC
 // replies.
-func (w *Wallet) ListAllTransactions() ([]btcjson.ListTransactionsResult, error) {
-	txList := []btcjson.ListTransactionsResult{}
+func (w *Wallet) ListAllTransactions() ([]hdfjson.ListTransactionsResult, error) {
+	txList := []hdfjson.ListTransactionsResult{}
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -2319,7 +2319,7 @@ func (w *Wallet) GetTransactions(startBlock, endBlock *BlockIdentifier, cancel <
 // AccountResult is a single account result for the AccountsResult type.
 type AccountResult struct {
 	waddrmgr.AccountProperties
-	TotalBalance btcutil.Amount
+	TotalBalance hdfutil.Amount
 }
 
 // AccountsResult is the resutl of the wallet's Accounts method.  See that
@@ -2372,7 +2372,7 @@ func (w *Wallet) Accounts(scope waddrmgr.KeyScope) (*AccountsResult, error) {
 		if err != nil {
 			return err
 		}
-		m := make(map[uint32]*btcutil.Amount)
+		m := make(map[uint32]*hdfutil.Amount)
 		for i := range accounts {
 			a := &accounts[i]
 			m[a.AccountNumber] = &a.TotalBalance
@@ -2404,7 +2404,7 @@ func (w *Wallet) Accounts(scope waddrmgr.KeyScope) (*AccountsResult, error) {
 type AccountBalanceResult struct {
 	AccountNumber  uint32
 	AccountName    string
-	AccountBalance btcutil.Amount
+	AccountBalance hdfutil.Amount
 }
 
 // AccountBalances returns all accounts in the wallet and their balances.
@@ -2524,9 +2524,9 @@ func (s creditSlice) Swap(i, j int) {
 // contained within it will be considered.  If we know nothing about a
 // transaction an empty array will be returned.
 func (w *Wallet) ListUnspent(minconf, maxconf int32,
-	addresses map[string]struct{}) ([]*btcjson.ListUnspentResult, error) {
+	addresses map[string]struct{}) ([]*hdfjson.ListUnspentResult, error) {
 
-	var results []*btcjson.ListUnspentResult
+	var results []*hdfjson.ListUnspentResult
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
@@ -2542,7 +2542,7 @@ func (w *Wallet) ListUnspent(minconf, maxconf int32,
 
 		defaultAccountName := "default"
 
-		results = make([]*btcjson.ListUnspentResult, 0, len(unspent))
+		results = make([]*hdfjson.ListUnspentResult, 0, len(unspent))
 		for i := range unspent {
 			output := unspent[i]
 
@@ -2635,12 +2635,12 @@ func (w *Wallet) ListUnspent(minconf, maxconf int32,
 				spendable = true
 			}
 
-			result := &btcjson.ListUnspentResult{
+			result := &hdfjson.ListUnspentResult{
 				TxID:          output.OutPoint.Hash.String(),
 				Vout:          output.OutPoint.Index,
 				Account:       acctName,
 				ScriptPubKey:  hex.EncodeToString(output.PkScript),
-				Amount:        output.Amount.ToBTC(),
+				Amount:        output.Amount.ToHDF(),
 				Confirmations: int64(confs),
 				Spendable:     spendable,
 			}
@@ -2667,7 +2667,7 @@ func (w *Wallet) DumpPrivKeys() ([]string, error) {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
 		// Iterate over each active address, appending the private key to
 		// privkeys.
-		return w.Manager.ForEachActiveAddress(addrmgrNs, func(addr btcutil.Address) error {
+		return w.Manager.ForEachActiveAddress(addrmgrNs, func(addr hdfutil.Address) error {
 			ma, err := w.Manager.Address(addrmgrNs, addr)
 			if err != nil {
 				return err
@@ -2695,7 +2695,7 @@ func (w *Wallet) DumpPrivKeys() ([]string, error) {
 
 // DumpWIFPrivateKey returns the WIF encoded private key for a
 // single wallet address.
-func (w *Wallet) DumpWIFPrivateKey(addr btcutil.Address) (string, error) {
+func (w *Wallet) DumpWIFPrivateKey(addr hdfutil.Address) (string, error) {
 	var maddr waddrmgr.ManagedAddress
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		waddrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
@@ -2725,7 +2725,7 @@ func (w *Wallet) DumpWIFPrivateKey(addr btcutil.Address) (string, error) {
 //
 // NOTE: If a block stamp is not provided, then the wallet's birthday will be
 // set to the genesis block of the corresponding chain.
-func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
+func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *hdfutil.WIF,
 	bs *waddrmgr.BlockStamp, rescan bool) (string, error) {
 
 	manager, err := w.Manager.FetchScopedKeyManager(scope)
@@ -2751,7 +2751,7 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	}
 
 	// Attempt to import private key into wallet.
-	var addr btcutil.Address
+	var addr hdfutil.Address
 	var props *waddrmgr.AccountProperties
 	err = walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
 		addrmgrNs := tx.ReadWriteBucket(waddrmgrNamespaceKey)
@@ -2797,7 +2797,7 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 	// imported address.
 	if rescan {
 		job := &RescanJob{
-			Addrs:      []btcutil.Address{addr},
+			Addrs:      []hdfutil.Address{addr},
 			OutPoints:  nil,
 			BlockStamp: *bs,
 		}
@@ -2808,7 +2808,7 @@ func (w *Wallet) ImportPrivateKey(scope waddrmgr.KeyScope, wif *btcutil.WIF,
 		// required to be read, so discard the return value.
 		_ = w.SubmitRescan(job)
 	} else {
-		err := w.chainClient.NotifyReceived([]btcutil.Address{addr})
+		err := w.chainClient.NotifyReceived([]hdfutil.Address{addr})
 		if err != nil {
 			return "", fmt.Errorf("Failed to subscribe for address ntfns for "+
 				"address %s: %s", addr.EncodeAddress(), err)
@@ -2864,14 +2864,14 @@ func (w *Wallet) ResetLockedOutpoints() {
 // LockedOutpoints returns a slice of currently locked outpoints.  This is
 // intended to be used by marshaling the result as a JSON array for
 // listlockunspent RPC results.
-func (w *Wallet) LockedOutpoints() []btcjson.TransactionInput {
+func (w *Wallet) LockedOutpoints() []hdfjson.TransactionInput {
 	w.lockedOutpointsMtx.Lock()
 	defer w.lockedOutpointsMtx.Unlock()
 
-	locked := make([]btcjson.TransactionInput, len(w.lockedOutpoints))
+	locked := make([]hdfjson.TransactionInput, len(w.lockedOutpoints))
 	i := 0
 	for op := range w.lockedOutpoints {
-		locked[i] = btcjson.TransactionInput{
+		locked[i] = hdfjson.TransactionInput{
 			Txid: op.Hash.String(),
 			Vout: op.Index,
 		}
@@ -2952,7 +2952,7 @@ func (w *Wallet) SortedActivePaymentAddresses() ([]string, error) {
 	var addrStrs []string
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		addrmgrNs := tx.ReadBucket(waddrmgrNamespaceKey)
-		return w.Manager.ForEachActiveAddress(addrmgrNs, func(addr btcutil.Address) error {
+		return w.Manager.ForEachActiveAddress(addrmgrNs, func(addr hdfutil.Address) error {
 			addrStrs = append(addrStrs, addr.EncodeAddress())
 			return nil
 		})
@@ -2967,7 +2967,7 @@ func (w *Wallet) SortedActivePaymentAddresses() ([]string, error) {
 
 // NewAddress returns the next external chained address for a wallet.
 func (w *Wallet) NewAddress(account uint32,
-	scope waddrmgr.KeyScope) (btcutil.Address, error) {
+	scope waddrmgr.KeyScope) (hdfutil.Address, error) {
 
 	chainClient, err := w.requireChainClient()
 	if err != nil {
@@ -2975,7 +2975,7 @@ func (w *Wallet) NewAddress(account uint32,
 	}
 
 	var (
-		addr  btcutil.Address
+		addr  hdfutil.Address
 		props *waddrmgr.AccountProperties
 	)
 	err = walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
@@ -2989,7 +2989,7 @@ func (w *Wallet) NewAddress(account uint32,
 	}
 
 	// Notify the rpc server about the newly created address.
-	err = chainClient.NotifyReceived([]btcutil.Address{addr})
+	err = chainClient.NotifyReceived([]hdfutil.Address{addr})
 	if err != nil {
 		return nil, err
 	}
@@ -3000,7 +3000,7 @@ func (w *Wallet) NewAddress(account uint32,
 }
 
 func (w *Wallet) newAddress(addrmgrNs walletdb.ReadWriteBucket, account uint32,
-	scope waddrmgr.KeyScope) (btcutil.Address, *waddrmgr.AccountProperties, error) {
+	scope waddrmgr.KeyScope) (hdfutil.Address, *waddrmgr.AccountProperties, error) {
 
 	manager, err := w.Manager.FetchScopedKeyManager(scope)
 	if err != nil {
@@ -3025,14 +3025,14 @@ func (w *Wallet) newAddress(addrmgrNs walletdb.ReadWriteBucket, account uint32,
 
 // NewChangeAddress returns a new change address for a wallet.
 func (w *Wallet) NewChangeAddress(account uint32,
-	scope waddrmgr.KeyScope) (btcutil.Address, error) {
+	scope waddrmgr.KeyScope) (hdfutil.Address, error) {
 
 	chainClient, err := w.requireChainClient()
 	if err != nil {
 		return nil, err
 	}
 
-	var addr btcutil.Address
+	var addr hdfutil.Address
 	err = walletdb.Update(w.db, func(tx walletdb.ReadWriteTx) error {
 		addrmgrNs := tx.ReadWriteBucket(waddrmgrNamespaceKey)
 		var err error
@@ -3044,7 +3044,7 @@ func (w *Wallet) NewChangeAddress(account uint32,
 	}
 
 	// Notify the rpc server about the newly created address.
-	err = chainClient.NotifyReceived([]btcutil.Address{addr})
+	err = chainClient.NotifyReceived([]hdfutil.Address{addr})
 	if err != nil {
 		return nil, err
 	}
@@ -3058,7 +3058,7 @@ func (w *Wallet) NewChangeAddress(account uint32,
 // method in order to detect when an on-chain transaction pays to the address
 // being created.
 func (w *Wallet) newChangeAddress(addrmgrNs walletdb.ReadWriteBucket,
-	account uint32, scope waddrmgr.KeyScope) (btcutil.Address, error) {
+	account uint32, scope waddrmgr.KeyScope) (hdfutil.Address, error) {
 
 	manager, err := w.Manager.FetchScopedKeyManager(scope)
 	if err != nil {
@@ -3097,7 +3097,7 @@ func confirms(txHeight, curHeight int32) int32 {
 type AccountTotalReceivedResult struct {
 	AccountNumber    uint32
 	AccountName      string
-	TotalReceived    btcutil.Amount
+	TotalReceived    hdfutil.Amount
 	LastConfirmation int32
 }
 
@@ -3173,8 +3173,8 @@ func (w *Wallet) TotalReceivedForAccounts(scope waddrmgr.KeyScope,
 // TotalReceivedForAddr iterates through a wallet's transaction history,
 // returning the total amount of bitcoins received for a single wallet
 // address.
-func (w *Wallet) TotalReceivedForAddr(addr btcutil.Address, minConf int32) (btcutil.Amount, error) {
-	var amount btcutil.Amount
+func (w *Wallet) TotalReceivedForAddr(addr hdfutil.Address, minConf int32) (hdfutil.Amount, error) {
+	var amount hdfutil.Amount
 	err := walletdb.View(w.db, func(tx walletdb.ReadTx) error {
 		txmgrNs := tx.ReadBucket(wtxmgrNamespaceKey)
 
@@ -3220,7 +3220,7 @@ func (w *Wallet) TotalReceivedForAddr(addr btcutil.Address, minConf int32) (btcu
 // SendOutputs creates and sends payment transactions. It returns the
 // transaction upon success.
 func (w *Wallet) SendOutputs(outputs []*wire.TxOut, account uint32,
-	minconf int32, satPerKb btcutil.Amount, label string) (*wire.MsgTx, error) {
+	minconf int32, satPerKb hdfutil.Amount, label string) (*wire.MsgTx, error) {
 
 	// Ensure the outputs to be created adhere to the network's consensus
 	// rules.
@@ -3275,7 +3275,7 @@ type SignatureError struct {
 // The transaction pointed to by tx is modified by this function.
 func (w *Wallet) SignTransaction(tx *wire.MsgTx, hashType txscript.SigHashType,
 	additionalPrevScripts map[wire.OutPoint][]byte,
-	additionalKeysByAddress map[string]*btcutil.WIF,
+	additionalKeysByAddress map[string]*hdfutil.WIF,
 	p2shRedeemScriptsByAddress map[string][]byte) ([]SignatureError, error) {
 
 	var signErrors []SignatureError
@@ -3302,7 +3302,7 @@ func (w *Wallet) SignTransaction(tx *wire.MsgTx, hashType txscript.SigHashType,
 
 			// Set up our callbacks that we pass to txscript so it can
 			// look up the appropriate keys and scripts by address.
-			getKey := txscript.KeyClosure(func(addr btcutil.Address) (*btcec.PrivateKey, bool, error) {
+			getKey := txscript.KeyClosure(func(addr hdfutil.Address) (*hdfec.PrivateKey, bool, error) {
 				if len(additionalKeysByAddress) != 0 {
 					addrStr := addr.EncodeAddress()
 					wif, ok := additionalKeysByAddress[addrStr]
@@ -3330,7 +3330,7 @@ func (w *Wallet) SignTransaction(tx *wire.MsgTx, hashType txscript.SigHashType,
 
 				return key, pka.Compressed(), nil
 			})
-			getScript := txscript.ScriptClosure(func(addr btcutil.Address) ([]byte, error) {
+			getScript := txscript.ScriptClosure(func(addr hdfutil.Address) ([]byte, error) {
 				// If keys were provided then we can only use the
 				// redeem scripts provided with our inputs, too.
 				if len(additionalKeysByAddress) != 0 {
@@ -3532,8 +3532,8 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	// Determine if this was an RPC error thrown due to the transaction
 	// already confirming.
 	var rpcTxConfirmed bool
-	if rpcErr, ok := err.(*btcjson.RPCError); ok {
-		rpcTxConfirmed = rpcErr.Code == btcjson.ErrRPCTxAlreadyInChain
+	if rpcErr, ok := err.(*hdfjson.RPCError); ok {
+		rpcTxConfirmed = rpcErr.Code == hdfjson.ErrRPCTxAlreadyInChain
 	}
 
 	var (
@@ -3551,8 +3551,8 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	// If the transaction is already in the mempool, we can just return now.
 	//
 	// This error is returned when broadcasting/sending a transaction to a
-	// btcd node that already has it in their mempool.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L953
+	// hdf node that already has it in their mempool.
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L953
 	case match(err, "already have transaction"):
 		fallthrough
 
@@ -3568,15 +3568,15 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	// in a sense successful.
 	//
 	// This error is returned when sending a transaction that has already
-	// confirmed to a btcd/bitcoind node over RPC.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/rpcserver.go#L3355
+	// confirmed to a hdf/bitcoind node over RPC.
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/rpcserver.go#L3355
 	// https://github.com/bitcoin/bitcoin/blob/9bf5768dd628b3a7c30dd42b5ed477a92c4d3540/src/node/transaction.cpp#L36
 	case rpcTxConfirmed:
 		fallthrough
 
 	// This error is returned when broadcasting a transaction that has
-	// already confirmed to a btcd node over the P2P network.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L1036
+	// already confirmed to a hdf node over the P2P network.
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L1036
 	case match(err, "transaction already exists"):
 		fallthrough
 
@@ -3603,23 +3603,23 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	// transaction already in the mempool or in the chain, we'll remove it
 	// from the store and return an error.
 	//
-	// This error is returned from btcd when there is already a transaction
+	// This error is returned from hdf when there is already a transaction
 	// not signaling replacement in the mempool that spends one of the
 	// referenced outputs.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L591
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L591
 	case match(err, "already spent"):
 		fallthrough
 
-	// This error is returned from btcd when a referenced output cannot be
+	// This error is returned from hdf when a referenced output cannot be
 	// found, meaning it etiher has been spent or doesn't exist.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/blockchain/chain.go#L405
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/blockchain/chain.go#L405
 	case match(err, "already been spent"):
 		fallthrough
 
-	// This error is returned from btcd when a transaction is spending
+	// This error is returned from hdf when a transaction is spending
 	// either output that is missing or already spent, and orphans aren't
 	// allowed.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L1409
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L1409
 	case match(err, "orphan transaction"):
 		fallthrough
 
@@ -3667,13 +3667,13 @@ func (w *Wallet) publishTransaction(tx *wire.MsgTx) (*chainhash.Hash, error) {
 	case match(err, "replacement-adds-unconfirmed"):
 		fallthrough
 
-	// Returned by btcd when replacement transaction was rejected for
+	// Returned by hdf when replacement transaction was rejected for
 	// whatever reason.
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L841
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L854
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L875
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L896
-	// https://github.com/btcsuite/btcd/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L913
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L841
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L854
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L875
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L896
+	// https://github.com/ifishnet/hdf/blob/130ea5bddde33df32b06a1cdb42a6316eb73cff5/mempool/mempool.go#L913
 	case match(err, "replacement transaction"):
 		returnErr = &ErrReplacement{
 			backendError: err,
@@ -3714,7 +3714,7 @@ func (w *Wallet) ChainParams() *chaincfg.Params {
 }
 
 // Database returns the underlying walletdb database. This method is provided
-// in order to allow applications wrapping btcwallet to store app-specific data
+// in order to allow applications wrapping hdfwallet to store app-specific data
 // with the wallet's database.
 func (w *Wallet) Database() walletdb.DB {
 	return w.db

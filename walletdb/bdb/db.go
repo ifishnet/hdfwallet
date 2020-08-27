@@ -1,4 +1,4 @@
-// Copyright (c) 2014 The btcsuite developers
+// Copyright (c) 2014 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/hdfsuite/hdfwallet/walletdb"
 	"go.etcd.io/bbolt"
 )
 

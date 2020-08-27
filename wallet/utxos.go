@@ -1,14 +1,14 @@
 // Copyright (c) 2016 The Decred developers
-// Copyright (c) 2017 The btcsuite developers
+// Copyright (c) 2017 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
 package wallet
 
 import (
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/ifishnet/hdf/txscript"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/hdfsuite/hdfwallet/walletdb"
 )
 
 // OutputSelectionPolicy describes the rules for selecting an output from the

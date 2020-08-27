@@ -1,4 +1,4 @@
-// Copyright (c) 2014 The btcsuite developers
+// Copyright (c) 2014 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	_ "github.com/hdfsuite/hdfwallet/walletdb/bdb"
 )
 
 var (

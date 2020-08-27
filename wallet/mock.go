@@ -3,11 +3,11 @@ package wallet
 import (
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/chain"
-	"github.com/btcsuite/btcwallet/waddrmgr"
+	"github.com/ifishnet/hdf/chaincfg/chainhash"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/ifishnet/hdfutil"
+	"github.com/hdfsuite/hdfwallet/chain"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
 )
 
 type mockChainClient struct {
@@ -63,12 +63,12 @@ func (m *mockChainClient) SendRawTransaction(*wire.MsgTx, bool) (
 	return nil, nil
 }
 
-func (m *mockChainClient) Rescan(*chainhash.Hash, []btcutil.Address,
-	map[wire.OutPoint]btcutil.Address) error {
+func (m *mockChainClient) Rescan(*chainhash.Hash, []hdfutil.Address,
+	map[wire.OutPoint]hdfutil.Address) error {
 	return nil
 }
 
-func (m *mockChainClient) NotifyReceived([]btcutil.Address) error {
+func (m *mockChainClient) NotifyReceived([]hdfutil.Address) error {
 	return nil
 }
 

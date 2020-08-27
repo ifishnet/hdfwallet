@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 The btcsuite developers
+// Copyright (c) 2014-2015 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -11,16 +11,16 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/internal/legacy/keystore"
-	"github.com/btcsuite/btcwallet/internal/prompt"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/wallet"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
+	"github.com/ifishnet/hdf/hdfec"
+	"github.com/ifishnet/hdf/chaincfg"
+	"github.com/ifishnet/hdf/wire"
+	"github.com/ifishnet/hdfutil"
+	"github.com/hdfsuite/hdfwallet/internal/legacy/keystore"
+	"github.com/hdfsuite/hdfwallet/internal/prompt"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/wallet"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	_ "github.com/hdfsuite/hdfwallet/walletdb/bdb"
 )
 
 // networkDir returns the directory name of a network directory to hold wallet
@@ -60,7 +60,7 @@ func convertLegacyKeystore(legacyKeyStore *keystore.Store, w *wallet.Wallet) err
 				continue
 			}
 
-			wif, err := btcutil.NewWIF((*btcec.PrivateKey)(privKey),
+			wif, err := hdfutil.NewWIF((*hdfec.PrivateKey)(privKey),
 				netParams, addr.Compressed())
 			if err != nil {
 				fmt.Printf("WARN: Failed to create wallet "+

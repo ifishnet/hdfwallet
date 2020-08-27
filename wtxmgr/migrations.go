@@ -1,8 +1,8 @@
 package wtxmgr
 
 import (
-	"github.com/btcsuite/btcwallet/walletdb"
-	"github.com/btcsuite/btcwallet/walletdb/migration"
+	"github.com/hdfsuite/hdfwallet/walletdb"
+	"github.com/hdfsuite/hdfwallet/walletdb/migration"
 )
 
 // versions is a list of the different database versions. The last entry should

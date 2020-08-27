@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 The btcsuite developers
+// Copyright (c) 2015-2016 The hdfsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcwallet/internal/prompt"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/ifishnet/hdf/chaincfg"
+	"github.com/hdfsuite/hdfwallet/internal/prompt"
+	"github.com/hdfsuite/hdfwallet/waddrmgr"
+	"github.com/hdfsuite/hdfwallet/walletdb"
 )
 
 const (
